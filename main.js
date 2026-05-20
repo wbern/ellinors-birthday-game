@@ -7712,7 +7712,228 @@ function buildPikachu() {
 }
 
 // ============================================================
-//  Big "1 2 3 / 4 5 6 / 7 8 9 0" wall poster on right wall above shelf
+//  Candles spread across the four station views (7 visible + 1 in locked box)
+// ============================================================
+{
+  // Candle 1 — upper bunk pillow area (Säng station)
+  const cA = buildCandle(PAL.candle);
+  cA.position.set(-1.30, 1.65, 1.40);
+  scene.add(cA);
+  registerCandle(cA);
+
+  // Candle 2 — on top of the dollhouse roof in play area (Säng station)
+  const cB = buildCandle(PAL.candleAlt);
+  cB.position.set(-1.75, 0.85, 1.55);
+  scene.add(cB);
+  registerCandle(cB);
+
+  // Candle 3 — on the dresser top, next to the music box (Bakvägg station)
+  const cC = buildCandle(PAL.candle);
+  cC.position.set(-1.68, 0.97, -1.50);
+  scene.add(cC);
+  registerCandle(cC);
+
+  // Candle 4 — inside the plush basket peeking up (Bakvägg station)
+  const cD = buildCandle(PAL.candleAlt);
+  cD.position.set(0.78, 0.30, -1.72);
+  scene.add(cD);
+  registerCandle(cD);
+
+  // Candle 5 — on the white side table, front-right corner (Hylla station)
+  // Kept away from the lockBox at (1.70, 0.75, -1.25).
+  const cE = buildCandle(PAL.candle);
+  cE.position.set(1.88, 0.78, -1.00);
+  scene.add(cE);
+  registerCandle(cE);
+
+  // Candle 6 — on a bookshelf cubby (Hylla station)
+  const cF = buildCandle(PAL.candleAlt);
+  cF.position.set(1.80, 1.10, -0.35);
+  scene.add(cF);
+  registerCandle(cF);
+
+  // Candle 7 — on the floor by the door, near the goose painting (Dörr station)
+  const cG = buildCandle(PAL.candle);
+  cG.position.set(0.85, 0.05, 1.55);
+  scene.add(cG);
+  registerCandle(cG);
+}
+
+// ============================================================
+//  Key + lock puzzle: pick up a key from one view, unlock the chest in another
+// ============================================================
+{
+  // Game-level flag to remember if the player has picked up the key.
+  if (!game.hasKey) game.hasKey = false;
+
+  // ----- The KEY: small golden key on top of the dresser, near the alarm clock.
+  // Visible from "Bakvägg" station. Tap to pick up.
+  const key = new THREE.Group();
+  const goldMat = mat(0xf5c130, { metalness: 0.7, roughness: 0.35, emissive: 0x6a4a08, emissiveIntensity: 0.25 });
+  // Bow (the ring you hold)
+  const bow = new THREE.Mesh(new THREE.TorusGeometry(0.022, 0.006, 8, 18), goldMat);
+  bow.rotation.x = Math.PI / 2;
+  bow.position.set(-0.04, 0, 0);
+  key.add(bow);
+  // Shaft
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.075, 10), goldMat);
+  shaft.rotation.z = Math.PI / 2;
+  shaft.position.set(0.012, 0, 0);
+  key.add(shaft);
+  // Bit teeth
+  const tooth1 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.012, 0.007), goldMat);
+  tooth1.position.set(0.040, -0.008, 0);
+  key.add(tooth1);
+  const tooth2 = new THREE.Mesh(new THREE.BoxGeometry(0.008, 0.008, 0.007), goldMat);
+  tooth2.position.set(0.028, -0.006, 0);
+  key.add(tooth2);
+
+  key.position.set(-1.60, 0.91, -1.05);   // on dresser top, room-facing front
+  key.rotation.y = 0.5;
+  key.userData.kind = 'key';
+  key.userData.bobPhase = 0;
+  scene.add(key);
+  registerInteract(key, () => {
+    if (game.hasKey) return;
+    game.hasKey = true;
+    SFX.open();
+    tone(880, 0.10, 'triangle');
+    tone(1320, 0.14, 'triangle', 0.05);
+    tone(1760, 0.16, 'triangle', 0.12);
+    toast('Du hittade en nyckel! 🔑');
+    // Pop the key up and shrink it as it "goes into your pocket".
+    const start = performance.now();
+    (function step() {
+      const t = Math.min(1, (performance.now() - start) / 600);
+      key.position.y = 0.91 + t * 0.5;
+      const s = 1 - t;
+      key.scale.set(s, s, s);
+      key.rotation.y += 0.2;
+      if (t < 1) requestAnimationFrame(step);
+      else key.visible = false;
+    })();
+    // Show "you have the key" indicator
+    const ind = document.getElementById('key-indicator');
+    if (ind) ind.classList.remove('hidden');
+  }, { label: 'Nyckel' });
+
+  // ----- The LOCK: an ornate purple heart-locked box on top of the white side table.
+  // Visible from "Hylla" station. Tap without key = wiggle + locked toast.
+  // Tap with key = open animation reveals candle inside.
+  const lockBox = new THREE.Group();
+  const boxMat = mat(0x9a6bd0, { roughness: 0.55, metalness: 0.15 });
+  const trimMat = mat(0xf3d96b, { roughness: 0.35, metalness: 0.7 });
+  const lockMat = mat(0xe55f7a, { roughness: 0.45, metalness: 0.2, emissive: 0x6a1a30, emissiveIntensity: 0.2 });
+
+  const base = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.10, 0.14), boxMat);
+  base.position.y = 0.05;
+  base.castShadow = true;
+  lockBox.add(base);
+  const lid = new THREE.Group();           // pivots open
+  const lidPanel = new THREE.Mesh(new THREE.BoxGeometry(0.20, 0.04, 0.14), boxMat);
+  lidPanel.position.set(0, 0.02, 0);
+  lid.add(lidPanel);
+  // Gold trim around the lid edges
+  for (const sx of [-0.10, 0.10]) {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.05, 0.145), trimMat);
+    t.position.set(sx, 0.02, 0);
+    lid.add(t);
+  }
+  // Pink heart-shaped lock on the front
+  const heart = new THREE.Mesh(new THREE.SphereGeometry(0.020, 12, 10), lockMat);
+  heart.scale.set(1.2, 1.0, 0.55);
+  heart.position.set(0, 0.025, 0.072);
+  lid.add(heart);
+  const keyhole = new THREE.Mesh(new THREE.CircleGeometry(0.005, 10), mat(0x2a1f1c));
+  keyhole.position.set(0, 0.022, 0.080);
+  lid.add(keyhole);
+  // Position lid so the back edge is the hinge
+  lid.position.set(0, 0.10, -0.07);
+  // Sub-group with offset to make rotation pivot the hinge
+  const lidPivot = new THREE.Group();
+  lidPivot.position.set(0, 0.10, -0.07);
+  // Move all children inside lidPanel/heart relative to pivot
+  lidPanel.position.set(0, 0.02, 0.07);
+  heart.position.set(0, 0.025, 0.072 + 0.07);
+  keyhole.position.set(0, 0.022, 0.080 + 0.07);
+  for (const c of lid.children) {
+    if (c.geometry?.type === 'BoxGeometry' && c.geometry.parameters.depth === 0.145) {
+      c.position.z = 0.0;  // gold trim along sides — re-center on pivot z
+    }
+  }
+  lidPivot.add(lidPanel);
+  for (const sx of [-0.10, 0.10]) {
+    const t = new THREE.Mesh(new THREE.BoxGeometry(0.006, 0.05, 0.145), trimMat);
+    t.position.set(sx, 0.02, 0.07);
+    lidPivot.add(t);
+  }
+  lidPivot.add(heart);
+  lidPivot.add(keyhole);
+  lockBox.add(lidPivot);
+
+  // Hidden candle inside the box (the 8th candle)
+  const hiddenCandle = buildCandle(PAL.candle);
+  hiddenCandle.position.set(0, 0.07, 0);
+  hiddenCandle.scale.set(0.7, 0.7, 0.7);
+  hiddenCandle.visible = false;
+  lockBox.add(hiddenCandle);
+
+  // Tap behavior
+  let opened = false;
+  lockBox.userData.kind = 'container';
+  lockBox.userData.label = 'Låst skrin';
+  registerInteract(lockBox, () => {
+    if (opened) return;
+    if (!game.hasKey) {
+      // Wiggle + locked sound + toast
+      tone(220, 0.10, 'square');
+      tone(180, 0.12, 'square', 0.08);
+      toast('Låst! Hitta nyckeln först. 🔒');
+      const startW = performance.now();
+      const baseX = lockBox.position.x;
+      (function shake() {
+        const t = (performance.now() - startW) / 350;
+        if (t >= 1) { lockBox.position.x = baseX; return; }
+        lockBox.position.x = baseX + Math.sin(t * Math.PI * 10) * 0.02 * (1 - t);
+        requestAnimationFrame(shake);
+      })();
+      return;
+    }
+    opened = true;
+    SFX.open();
+    tone(660, 0.10, 'triangle');
+    tone(990, 0.14, 'triangle', 0.06);
+    tone(1320, 0.18, 'triangle', 0.14);
+    toast('Skrinet öppnades!');
+    // Lid swings open (rotate around X)
+    const startO = performance.now();
+    (function step() {
+      const t = Math.min(1, (performance.now() - startO) / 600);
+      const e = 1 - Math.pow(1 - t, 3);
+      lidPivot.rotation.x = -e * 1.4;
+      if (t < 1) requestAnimationFrame(step);
+      else {
+        hiddenCandle.visible = true;
+        const startP = performance.now();
+        (function pop() {
+          const t2 = Math.min(1, (performance.now() - startP) / 350);
+          const ee = t2 < 0.5 ? 2 * t2 * t2 : 1 - Math.pow(-2 * t2 + 2, 2) / 2;
+          const s = ee * 0.7;
+          hiddenCandle.scale.set(s, s, s);
+          if (t2 < 1) requestAnimationFrame(pop);
+        })();
+      }
+    })();
+  }, { label: 'Låst skrin' });
+
+  // Make the revealed candle collectable
+  registerInteract(hiddenCandle, () => collectItem(hiddenCandle));
+
+  // Place lockBox on the white side table top (table top at y=0.75)
+  lockBox.position.set(1.70, 0.75, -1.25);
+  lockBox.rotation.y = -0.3;
+  scene.add(lockBox);
+}
 //  ARCHIVED — flip to `if (true)` to restore.
 // ============================================================
 if (false) {
@@ -8042,30 +8263,81 @@ let debugLabelsGroup = null;
 // only the *look direction* changes as the goose moves — the camera position
 // itself stays put.
 const ROOM_CENTER = new THREE.Vector3(0, 0.5, 0);
+
+// Fixed camera "stations" (Myst-style). Press LEFT/RIGHT to cycle.
+// Each station has a camera world-position and a look-at target.
+const STATIONS = [
+  { name: 'Översikt', pos: [ 3.6, 3.3,  3.6], target: [ 0.0, 0.5, -0.1] },
+  { name: 'Säng',     pos: [ 1.4, 1.3,  1.0], target: [-1.6, 0.8,  0.4] },
+  { name: 'Bakvägg',  pos: [ 0.0, 1.4,  1.3], target: [ 0.0, 0.7, -1.8] },
+  { name: 'Hylla',    pos: [-0.4, 1.5,  0.6], target: [ 1.9, 1.0, -0.5] },
+  { name: 'Dörr',     pos: [-0.4, 1.4, -1.0], target: [ 0.8, 1.0,  1.9] },
+];
+let currentStation = 0;
+
 const cam = {
-  target: new THREE.Vector3(0, 0.5, 0),
-  yaw: Math.PI * 0.22,    // anchor angle: front-right corner of the room
-  pitch: Math.PI * 0.28,  // anchor elevation
-  minPitch: Math.PI * 0.18,
-  maxPitch: Math.PI * 0.42,
-  distance: 7.8,          // anchor distance from room center
-  minDistance: 4.5,
-  maxDistance: 11.0,
+  position: new THREE.Vector3(...STATIONS[0].pos),
+  target:   new THREE.Vector3(...STATIONS[0].target),
+  // Derived values (kept up-to-date for code that still reads them: pinch px-to-world etc.)
+  yaw: 0, pitch: 0, distance: 5,
+  minDistance: 1.5, maxDistance: 12.0,
 };
 
-function updateCameraAnchor() {
-  // Recompute the camera's WORLD POSITION from yaw/pitch/distance around the room center.
-  const cp = Math.cos(cam.pitch);
-  camera.position.set(
-    ROOM_CENTER.x + cam.distance * cp * Math.sin(cam.yaw),
-    ROOM_CENTER.y + cam.distance * Math.sin(cam.pitch),
-    ROOM_CENTER.z + cam.distance * cp * Math.cos(cam.yaw),
-  );
+// Smooth lerp between stations.
+const stationAnim = {
+  active: false,
+  t: 0,
+  dur: 0.85,
+  fromPos: new THREE.Vector3(),
+  fromTgt: new THREE.Vector3(),
+  toPos: new THREE.Vector3(),
+  toTgt: new THREE.Vector3(),
+};
+
+function goToStation(idx, immediate = false) {
+  const n = STATIONS.length;
+  idx = ((idx % n) + n) % n;
+  const s = STATIONS[idx];
+  if (immediate) {
+    cam.position.set(s.pos[0], s.pos[1], s.pos[2]);
+    cam.target.set(s.target[0], s.target[1], s.target[2]);
+    stationAnim.active = false;
+  } else {
+    stationAnim.fromPos.copy(cam.position);
+    stationAnim.fromTgt.copy(cam.target);
+    stationAnim.toPos.set(s.pos[0], s.pos[1], s.pos[2]);
+    stationAnim.toTgt.set(s.target[0], s.target[1], s.target[2]);
+    stationAnim.t = 0;
+    stationAnim.active = true;
+  }
+  currentStation = idx;
+  updateStationLabel();
+}
+
+function tickStationAnim(dt) {
+  if (!stationAnim.active) return;
+  stationAnim.t = Math.min(1, stationAnim.t + dt / stationAnim.dur);
+  const e = 1 - Math.pow(1 - stationAnim.t, 3);  // easeOutCubic
+  cam.position.lerpVectors(stationAnim.fromPos, stationAnim.toPos, e);
+  cam.target.lerpVectors(stationAnim.fromTgt, stationAnim.toTgt, e);
+  if (stationAnim.t >= 1) stationAnim.active = false;
+}
+
+function updateStationLabel() {
+  const el = document.getElementById('station-label');
+  if (el) el.textContent = STATIONS[currentStation].name;
 }
 
 function updateCameraFromCam() {
-  updateCameraAnchor();
+  camera.position.copy(cam.position);
   camera.lookAt(cam.target);
+  // Keep derived yaw/pitch/distance fresh for any remaining consumers.
+  const dx = cam.position.x - cam.target.x;
+  const dy = cam.position.y - cam.target.y;
+  const dz = cam.position.z - cam.target.z;
+  cam.distance = Math.hypot(dx, dy, dz);
+  cam.yaw = Math.atan2(dx, dz);
+  cam.pitch = Math.atan2(dy, Math.hypot(dx, dz));
 }
 
 // Effective view-yaw based on the camera's actual look direction (not the
@@ -8691,42 +8963,14 @@ canvas.addEventListener('pointermove', e => {
   if (pinch.pointers.has(e.pointerId)) {
     pinch.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
   }
-  if (pinch.active && pinch.pointers.size >= 2) {
-    const [a, b] = [...pinch.pointers.values()];
-    // Zoom: scale relative to initial spread.
-    const d = Math.hypot(a.x - b.x, a.y - b.y);
-    const ratio = pinch.startDist / Math.max(1, d);
-    cam.distance = Math.min(cam.maxDistance, Math.max(cam.minDistance, pinch.startDistance * ratio));
-    // Pan: world-space delta = -screenToWorld(centroid delta in pixels * px-to-world).
-    // px-to-world keeps the room "stuck" under the fingers regardless of zoom.
-    const cx = (a.x + b.x) / 2, cy = (a.y + b.y) / 2;
-    if (pinch.lastCentroid) {
-      const dxs = cx - pinch.lastCentroid.x;
-      const dys = cy - pinch.lastCentroid.y;
-      const fovRad = camera.fov * Math.PI / 180;
-      const pxToWorld = (2 * cam.distance * Math.tan(fovRad / 2)) / Math.max(1, canvas.clientHeight);
-      const w = screenToWorld(dxs * pxToWorld, dys * pxToWorld);
-      ROOM_CENTER.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, ROOM_CENTER.x - w.x));
-      ROOM_CENTER.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, ROOM_CENTER.z - w.z));
-      cam.target.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, cam.target.x - w.x));
-      cam.target.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, cam.target.z - w.z));
-    }
-    pinch.lastCentroid = { x: cx, y: cy };
-    return;
-  }
-  if (e.pointerId === joy.pointerId) {
-    joyMove(e.clientX, e.clientY);
-    return;
-  }
+  // Pinch + drag rotation removed — stations are fixed, navigation via arrows.
+  // We still track drag.moved so a small drag doesn't accidentally fire a tap.
   if (drag.active && e.pointerId === drag.pointerId) {
     const dx = e.clientX - drag.lastX;
     const dy = e.clientY - drag.lastY;
     drag.lastX = e.clientX;
     drag.lastY = e.clientY;
     drag.moved += Math.hypot(dx, dy);
-    // Mouse drag now rotates the camera yaw (the goose, not the camera, is panned by movement).
-    cam.yaw += dx * 0.005;
-    cam.pitch = Math.max(cam.minPitch, Math.min(cam.maxPitch, cam.pitch + dy * 0.003));
     if (drag.moved > 8 && canvas._tapStart) canvas._tapStart = null;
   }
 }, { passive: true });
@@ -8754,41 +8998,32 @@ canvas.addEventListener('pointercancel', endPointer, { passive: true });
 // Right-click and wheel default behaviour disabled on canvas (prevent page interference).
 canvas.addEventListener('contextmenu', e => e.preventDefault());
 
-// Wheel handler: mouse wheel zooms, Mac trackpad two-finger swipe pans, Mac
-// trackpad pinch (browser fires wheel with ctrlKey=true) zooms.
-// Heuristic: ctrlKey → zoom; horizontal deltaX or small |deltaY| → trackpad
-// pan; otherwise → mouse-wheel zoom. Mouse wheels send |deltaY| ≥ ~100 per
-// click in pure vertical, while trackpads send many small continuous deltas.
+// Mouse wheel / trackpad: horizontal swipe cycles stations; vertical wheel ignored
+// (kids on iPad don't have wheels — primary input is the on-screen arrows).
+let _wheelAccum = 0;
 canvas.addEventListener('wheel', e => {
   e.preventDefault();
-  if (e.ctrlKey) {
-    // Mac pinch (or Ctrl+scroll on desktop) → zoom.
-    cam.distance = Math.min(cam.maxDistance, Math.max(cam.minDistance, cam.distance + e.deltaY * 0.012));
-    return;
-  }
-  const isTrackpadSwipe = e.deltaX !== 0 || Math.abs(e.deltaY) < 50;
-  if (isTrackpadSwipe) {
-    const fovRad = camera.fov * Math.PI / 180;
-    const pxToWorld = (2 * cam.distance * Math.tan(fovRad / 2)) / Math.max(1, canvas.clientHeight);
-    const w = screenToWorld(e.deltaX * pxToWorld, e.deltaY * pxToWorld);
-    ROOM_CENTER.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, ROOM_CENTER.x + w.x));
-    ROOM_CENTER.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, ROOM_CENTER.z + w.z));
-    cam.target.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, cam.target.x + w.x));
-    cam.target.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, cam.target.z + w.z));
-    return;
-  }
-  cam.distance = Math.min(cam.maxDistance, Math.max(cam.minDistance, cam.distance + e.deltaY * 0.006));
+  _wheelAccum += e.deltaX;
+  if (_wheelAccum > 80) { goToStation(currentStation + 1); _wheelAccum = 0; }
+  else if (_wheelAccum < -80) { goToStation(currentStation - 1); _wheelAccum = 0; }
 }, { passive: false });
 
 // ============================================================
-//  Keyboard parity — WASD / arrows = move, Q/E = rotate yaw, +/- = zoom, Space = beak
+//  Keyboard parity — LEFT / RIGHT (or A / D) cycle between fixed camera stations.
 // ============================================================
 const keys = Object.create(null);
 window.addEventListener('keydown', e => {
   if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
   const k = e.key.toLowerCase();
-  // Goose removed — only camera keys (Q/E yaw, +/- zoom) remain wired up below.
   keys[k] = true;
+  // LEFT / RIGHT (or A/D) cycle between fixed camera stations.
+  if (k === 'arrowleft' || k === 'a') {
+    goToStation(currentStation - 1);
+    e.preventDefault();
+  } else if (k === 'arrowright' || k === 'd') {
+    goToStation(currentStation + 1);
+    e.preventDefault();
+  }
 }, { passive: false });
 window.addEventListener('keyup', e => {
   keys[e.key.toLowerCase()] = false;
@@ -9252,71 +9487,8 @@ function animate() {
     cam.target.z += (goose.z - cam.target.z) * followLerp;
   }
   cam.target.y = 0.5;
-  clampTarget();
-
-  // The camera anchor's yaw is pulled toward the *opposite* side of the room
-  // from the goose. As the goose approaches a wall, the camera slides around
-  // to the diagonally-opposite corner so the goose stays visible from a good
-  // viewing angle. Near room center the pull is weak so the view doesn't spin
-  // around for tiny movements.
-  // Only kick in once the goose enters this margin from any wall. Outside the
-  // margin the camera is left completely still — constant rotation would feel
-  // like seasickness and makes touch controls awkward.
-  const WALL_MARGIN = 1.7;
-  const wallDist = Math.min(
-    ROOM.w / 2 - goose.x,
-    goose.x + ROOM.w / 2,
-    ROOM.d / 2 - goose.z,
-    goose.z + ROOM.d / 2,
-  );
-  if (goose.moving && wallDist < WALL_MARGIN && !keys['q'] && !keys['e'] && !drag.active) {
-    const gxRel = goose.x - ROOM_CENTER.x;
-    const gzRel = goose.z - ROOM_CENTER.z;
-    const targetYaw = Math.atan2(-gxRel, -gzRel);
-    // Shortest-arc difference
-    let dy = targetYaw - cam.yaw;
-    while (dy > Math.PI) dy -= 2 * Math.PI;
-    while (dy < -Math.PI) dy += 2 * Math.PI;
-    // Pull strength ramps up the closer the goose gets to a wall.
-    const pullStrength = 1 - wallDist / WALL_MARGIN;
-    const yawLerp = 1 - Math.exp(-1.8 * pullStrength * dt);
-    cam.yaw += dy * yawLerp;
-    if (cam.yaw > Math.PI) cam.yaw -= 2 * Math.PI;
-    else if (cam.yaw < -Math.PI) cam.yaw += 2 * Math.PI;
-  }
-
-  // Manual yaw / zoom (keyboard) — Q/E temporarily overrides the auto-rotate
-  const keyYawSpeed = 1.6 * dt;
-  const keyZoomSpeed = 4.0 * dt;
-  if (keys['q']) cam.yaw -= keyYawSpeed;
-  if (keys['e']) cam.yaw += keyYawSpeed;
-  if (keys['='] || keys['+']) cam.distance = Math.max(cam.minDistance, cam.distance - keyZoomSpeed);
-  if (keys['-'] || keys['_']) cam.distance = Math.min(cam.maxDistance, cam.distance + keyZoomSpeed);
-
-  // WASD / arrows pan the camera in world XZ — same as pinch / two-finger pan
-  {
-    let kx = 0, kz = 0;  // kx = strafe right (+), kz = forward (+)
-    if (keys['w'] || keys['arrowup'])    kz += 1;
-    if (keys['s'] || keys['arrowdown'])  kz -= 1;
-    if (keys['a'] || keys['arrowleft'])  kx -= 1;
-    if (keys['d'] || keys['arrowright']) kx += 1;
-    if (kx || kz) {
-      const len = Math.hypot(kx, kz);
-      kx /= len; kz /= len;
-      // Pan speed scales with current zoom so it feels consistent at any distance.
-      const panSpeed = cam.distance * 0.55 * dt;
-      const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
-      // Camera-relative forward (toward target) in world XZ = (-sin yaw, -cos yaw);
-      // right = (cos yaw, -sin yaw). kz is the "forward" axis (W = -kz).
-      const dx = (kx * cy + kz * -sy) * panSpeed;
-      const dz = (kx * -sy + kz * -cy) * panSpeed;
-      ROOM_CENTER.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, ROOM_CENTER.x + dx));
-      ROOM_CENTER.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, ROOM_CENTER.z + dz));
-      cam.target.x  = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, cam.target.x + dx));
-      cam.target.z  = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, cam.target.z + dz));
-    }
-  }
-
+  // Fixed-station camera: smooth lerp between stations when nav happens.
+  tickStationAnim(dt);
   updateCameraFromCam();
 
   // Goose removed: no proximity scan, no beak arming, no near-orb.
@@ -9421,12 +9593,25 @@ document.getElementById('start-btn').addEventListener('click', () => {
 
   document.getElementById('start-screen').classList.add('hidden');
   document.getElementById('hud').classList.remove('hidden');
+  // Show station navigation UI
+  document.getElementById('nav-left').classList.remove('hidden');
+  document.getElementById('nav-right').classList.remove('hidden');
+  document.getElementById('station-label').classList.remove('hidden');
+  updateStationLabel();
   // Goose removed — HONK button stays hidden; the wall painting plays honks.
   setTimeout(() => {
     const h = document.getElementById('hint');
     if (h) h.style.opacity = '0';
   }, 6000);
 });
+
+// Station nav buttons — left/right arrows in the screen edges
+{
+  const navL = document.getElementById('nav-left');
+  const navR = document.getElementById('nav-right');
+  if (navL) navL.addEventListener('click', () => goToStation(currentStation - 1));
+  if (navR) navR.addEventListener('click', () => goToStation(currentStation + 1));
+}
 
 // Touch/click honk button — rapid presses fire fresh honks each time.
 {

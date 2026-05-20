@@ -29,6 +29,9 @@
       <span id="candle-icon">🕯️</span>
       <span id="candle-count">0 / 8</span>
     </div>
+    <div id="key-indicator" class="hidden">
+      <span class="key-emoji">🔑</span>
+    </div>
     <div id="hint">Tryck på saker i rummet för att hitta bokstäver och ljus!</div>
   </div>
 
@@ -40,6 +43,10 @@
     <span class="honk-icon">📣</span>
     <span class="honk-label">HONK</span>
   </button>
+
+  <button id="nav-left" class="nav-arrow hidden" aria-label="Vrid vänster">‹</button>
+  <button id="nav-right" class="nav-arrow hidden" aria-label="Vrid höger">›</button>
+  <div id="station-label" class="hidden">Översikt</div>
 
   <button id="debug-toggle" aria-label="Toggle debug labels" title="Toggle debug labels (D)">D</button>
 
@@ -58,7 +65,7 @@
       <h1>Ellinors födelsedagsspel</h1>
       <p>Hitta alla bokstäver i <b>ELLINOR</b> och alla 8 födelsedagsljus som gömt sig i rummet!</p>
       <p class="hint-small">👆 Tryck på saker i rummet för att utforska — bokstäver och ljus är gömda överallt.</p>
-      <p class="hint-small">🖱️ Mushjul zoomar, Q/E roterar kameran, WASD flyttar kameran.</p>
+      <p class="hint-small">⬅️ ➡️ Tryck på pilarna för att vrida runt rummet och se nya vinklar.</p>
       <button id="start-btn">Börja leta!</button>
     </div>
   </div>
