@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Ellinors födelsedagsspel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div id="loading">Laddar Ellinors rum…</div>
+
+  <div id="hud" class="hidden">
+    <div id="letter-tracker">
+      <span class="letter" data-letter="E">E</span>
+      <span class="letter" data-letter="L1">L</span>
+      <span class="letter" data-letter="L2">L</span>
+      <span class="letter" data-letter="I">I</span>
+      <span class="letter" data-letter="N">N</span>
+      <span class="letter" data-letter="O">O</span>
+      <span class="letter" data-letter="R">R</span>
+    </div>
+    <div id="candle-tracker">
+      <span id="candle-icon">🕯️</span>
+      <span id="candle-count">0 / 8</span>
+    </div>
+    <div id="hint">Tryck på saker i rummet för att hitta bokstäver och ljus!</div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+
+  <div id="overlay-layer"></div>
+
+  <button id="honk-btn" class="hidden" aria-label="Honk">
+    <span class="honk-icon">📣</span>
+    <span class="honk-label">HONK</span>
+  </button>
+
+  <button id="debug-toggle" aria-label="Toggle debug labels" title="Toggle debug labels (D)">D</button>
+
+  <div id="win-screen" class="hidden">
+    <div class="win-card">
+      <h1>Grattis på födelsedagen Ellinor!</h1>
+      <p class="win-sub">Du fyller 8 år! 🎂</p>
+      <p class="win-sub">Du hittade alla bokstäver och alla ljus!</p>
+      <button id="play-again">Spela igen</button>
+    </div>
+    <div id="confetti"></div>
+  </div>
+
+  <div id="start-screen">
+    <div class="start-card">
+      <h1>Ellinors födelsedagsspel</h1>
+      <p>Hitta alla bokstäver i <b>ELLINOR</b> och alla 8 födelsedagsljus som gömt sig i rummet!</p>
+      <p class="hint-small">👆 Tryck på saker i rummet för att utforska — bokstäver och ljus är gömda överallt.</p>
+      <p class="hint-small">🖱️ Mushjul zoomar, Q/E roterar kameran.</p>
+      <button id="start-btn">Börja leta!</button>
+    </div>
+  </div>
+
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js"
+      }
+    }
+  </script>
+  <script type="module" src="main.js"></script>
+</body>
+</html>
