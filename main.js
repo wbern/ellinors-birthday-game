@@ -7553,7 +7553,7 @@ function buildPikachu() {
     })();
   }, { label: 'Gunghäst' });
 
-  placeObject(horse, { name: 'rockingHorse', x: -0.75, z: -ROOM.d / 2 + 0.28 });
+  placeObject(horse, { name: 'rockingHorse', x: -0.75, z: -ROOM.d / 2 + 0.30, yaw: -0.6 });
 }
 
 // Basket of plush toys — back wall, right of center
