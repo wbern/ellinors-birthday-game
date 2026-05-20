@@ -8654,6 +8654,30 @@ function animate() {
   if (keys['='] || keys['+']) cam.distance = Math.max(cam.minDistance, cam.distance - keyZoomSpeed);
   if (keys['-'] || keys['_']) cam.distance = Math.min(cam.maxDistance, cam.distance + keyZoomSpeed);
 
+  // WASD / arrows pan the camera in world XZ — same as pinch / two-finger pan
+  {
+    let kx = 0, kz = 0;  // kx = strafe right (+), kz = forward (+)
+    if (keys['w'] || keys['arrowup'])    kz += 1;
+    if (keys['s'] || keys['arrowdown'])  kz -= 1;
+    if (keys['a'] || keys['arrowleft'])  kx -= 1;
+    if (keys['d'] || keys['arrowright']) kx += 1;
+    if (kx || kz) {
+      const len = Math.hypot(kx, kz);
+      kx /= len; kz /= len;
+      // Pan speed scales with current zoom so it feels consistent at any distance.
+      const panSpeed = cam.distance * 0.55 * dt;
+      const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw);
+      // Camera-relative forward (toward target) in world XZ = (-sin yaw, -cos yaw);
+      // right = (cos yaw, -sin yaw). kz is the "forward" axis (W = -kz).
+      const dx = (kx * cy + kz * -sy) * panSpeed;
+      const dz = (kx * -sy + kz * -cy) * panSpeed;
+      ROOM_CENTER.x = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, ROOM_CENTER.x + dx));
+      ROOM_CENTER.z = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, ROOM_CENTER.z + dz));
+      cam.target.x  = Math.max(PAN_LIMIT.xMin, Math.min(PAN_LIMIT.xMax, cam.target.x + dx));
+      cam.target.z  = Math.max(PAN_LIMIT.zMin, Math.min(PAN_LIMIT.zMax, cam.target.z + dz));
+    }
+  }
+
   updateCameraFromCam();
 
   // Goose removed: no proximity scan, no beak arming, no near-orb.
