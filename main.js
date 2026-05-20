@@ -5858,6 +5858,134 @@ function buildPikachu() {
     }
   }
 
+  // Rag doll sitting against the wall (back -X side)
+  {
+    const doll = new THREE.Group();
+    const skin = mat(0xf5e4cf, { roughness: 0.9 });
+    const dress = mat(0xe55f7a, { roughness: 0.85 });
+    const hair = mat(0xc28d6a, { roughness: 1.0 });
+    const body5 = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.08, 0.04), dress);
+    body5.position.y = 0.04;
+    body5.castShadow = true;
+    doll.add(body5);
+    const head3 = new THREE.Mesh(new THREE.SphereGeometry(0.030, 12, 10), skin);
+    head3.position.y = 0.11;
+    doll.add(head3);
+    const hairMesh = new THREE.Mesh(new THREE.SphereGeometry(0.034, 12, 10), hair);
+    hairMesh.position.set(0, 0.118, -0.005);
+    hairMesh.scale.set(1.0, 0.85, 1.05);
+    doll.add(hairMesh);
+    // Two pigtails
+    for (const sx of [-0.030, 0.030]) {
+      const pig = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), hair);
+      pig.position.set(sx, 0.10, 0);
+      pig.scale.set(0.9, 1.5, 0.9);
+      doll.add(pig);
+    }
+    // Eyes
+    for (const sx of [-0.010, 0.010]) {
+      const e = new THREE.Mesh(new THREE.SphereGeometry(0.0035, 6, 6), mat(0x2a1f1c));
+      e.position.set(sx, 0.115, 0.025);
+      doll.add(e);
+    }
+    // Legs
+    for (const sx of [-0.014, 0.014]) {
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.02), skin);
+      leg.position.set(sx, -0.005, 0);
+      doll.add(leg);
+    }
+    // Arms
+    for (const sx of [-0.040, 0.040]) {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.05, 0.02), skin);
+      arm.position.set(sx, 0.05, 0);
+      arm.rotation.z = sx > 0 ? -0.4 : 0.4;
+      doll.add(arm);
+    }
+    doll.position.set(-0.30, playY + 0.005, 0.40);
+    doll.rotation.y = 0.5;
+    bunk.add(doll);
+    tapWiggle(doll, 740, 'Docka', { sway: 0.3, lift: 0.04, duration: 460 });
+  }
+
+  // Toy phone — chunky pink with a yellow handset on top
+  {
+    const phone = new THREE.Group();
+    const body6 = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.04, 0.07), mat(0xe55f7a, { roughness: 0.65 }));
+    body6.position.y = 0.02;
+    body6.castShadow = true;
+    phone.add(body6);
+    const dial = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.005, 16), mat(0xfffaf2));
+    dial.position.set(-0.015, 0.043, 0);
+    phone.add(dial);
+    // Holes in dial
+    for (let i = 0; i < 5; i++) {
+      const a = i * Math.PI / 5;
+      const hole = new THREE.Mesh(new THREE.CircleGeometry(0.0035, 8), mat(0x2a1f1c));
+      hole.rotation.x = -Math.PI / 2;
+      hole.position.set(-0.015 + Math.cos(a) * 0.016, 0.046, Math.sin(a) * 0.016);
+      phone.add(hole);
+    }
+    // Handset (yellow tube with two ends)
+    const handset = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.10, 12), mat(0xf5d547, { roughness: 0.6 }));
+    handset.rotation.z = Math.PI / 2;
+    handset.position.set(0, 0.06, 0.025);
+    phone.add(handset);
+    for (const sx of [-0.046, 0.046]) {
+      const end = new THREE.Mesh(new THREE.SphereGeometry(0.02, 12, 8), mat(0xf5d547));
+      end.position.set(sx, 0.06, 0.025);
+      end.scale.set(0.8, 1.0, 1.0);
+      phone.add(end);
+    }
+    // Wheels (it's a pull-along phone toy)
+    for (const sx of [-0.040, 0.040]) {
+      for (const sz of [-0.025, 0.025]) {
+        const w = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.008, 10), mat(0x2a1f1c));
+        w.rotation.z = Math.PI / 2;
+        w.position.set(sx, 0.008, sz);
+        phone.add(w);
+      }
+    }
+    phone.position.set(0.20, playY + 0.005, 0.45);
+    phone.rotation.y = -0.4;
+    bunk.add(phone);
+    tapWiggle(phone, 587, 'Leksakstelefon', { sway: 0.35, lift: 0.05, duration: 480 });
+  }
+
+  // Mini xylophone — 5 colorful metal bars on a wood frame, with mallet
+  {
+    const xy = new THREE.Group();
+    const frameM = mat(PAL.wood, { roughness: 0.75 });
+    const fL = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.015, 0.012), frameM);
+    fL.position.set(0, 0.015, -0.045);
+    xy.add(fL);
+    const fR = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.015, 0.012), frameM);
+    fR.position.set(0, 0.015, 0.045);
+    xy.add(fR);
+    const barCols = [0xe55f7a, 0xf2a93a, 0xf5d547, 0x6cc24a, 0x4a90e2];
+    for (let i = 0; i < barCols.length; i++) {
+      const w = 0.022 - i * 0.001;
+      const bar = new THREE.Mesh(
+        new THREE.BoxGeometry(w, 0.008, 0.10),
+        mat(barCols[i], { roughness: 0.4, metalness: 0.55 }),
+      );
+      bar.position.set(-0.06 + i * 0.030, 0.026, 0);
+      bar.castShadow = true;
+      xy.add(bar);
+    }
+    // Mallet
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.10, 6), frameM);
+    stick.rotation.z = Math.PI / 2;
+    stick.position.set(0.10, 0.026, 0.06);
+    xy.add(stick);
+    const knob = new THREE.Mesh(new THREE.SphereGeometry(0.010, 8, 6), mat(0xc28d6a));
+    knob.position.set(0.150, 0.026, 0.06);
+    xy.add(knob);
+    xy.position.set(-0.15, playY + 0.005, -0.55);
+    xy.rotation.y = 0.15;
+    bunk.add(xy);
+    tapWiggle(xy, 1175, 'Xylofon', { sway: 0.20, lift: 0.03, duration: 450 });
+  }
+
   // Frame body for the blocking AABB
   const frameBody = new THREE.Mesh(
     new THREE.BoxGeometry(bedW, 1.85, bedL),
@@ -6059,22 +6187,162 @@ function buildPikachu() {
   }
 
   // Small plant pot on top
-  const pot = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.06, 0.08, 0.1, 12),
-    mat(0xc28dba, { roughness: 0.85 }),
-  );
-  pot.position.set(0.05, 0.91, -0.3);
-  pot.castShadow = true;
-  dresser.add(pot);
-  for (let i = 0; i < 5; i++) {
-    const leaf = new THREE.Mesh(
-      new THREE.SphereGeometry(0.04, 8, 6),
-      mat(0x8aa68a, { roughness: 0.9 }),
+  {
+    const potGrp = new THREE.Group();
+    const pot = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.06, 0.08, 0.1, 12),
+      mat(0xc28dba, { roughness: 0.85 }),
     );
-    const a = (i / 5) * Math.PI * 2;
-    leaf.position.set(0.05 + Math.cos(a) * 0.04, 1.00 + (i % 2) * 0.025, -0.3 + Math.sin(a) * 0.04);
-    leaf.scale.set(1.2, 0.7, 1.0);
-    dresser.add(leaf);
+    pot.position.set(0.05, 0.91, -0.3);
+    pot.castShadow = true;
+    potGrp.add(pot);
+    for (let i = 0; i < 5; i++) {
+      const leaf = new THREE.Mesh(
+        new THREE.SphereGeometry(0.04, 8, 6),
+        mat(0x8aa68a, { roughness: 0.9 }),
+      );
+      const a = (i / 5) * Math.PI * 2;
+      leaf.position.set(0.05 + Math.cos(a) * 0.04, 1.00 + (i % 2) * 0.025, -0.3 + Math.sin(a) * 0.04);
+      leaf.scale.set(1.2, 0.7, 1.0);
+      potGrp.add(leaf);
+    }
+    dresser.add(potGrp);
+    tapWiggle(potGrp, 392, 'Krukväxt', { sway: 0.12, lift: 0.02 });
+  }
+
+  // Alarm clock — pink dome with little legs and bells
+  {
+    const clk = new THREE.Group();
+    const face = mat(0xfdfcf8, { roughness: 0.55 });
+    const shell = mat(0xe55f7a, { roughness: 0.55 });
+    const metal = mat(0xcfa370, { roughness: 0.45 });
+    const body2 = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), shell);
+    body2.scale.set(1.0, 0.8, 0.55);
+    body2.position.set(0.05, 0.95, 0.10);
+    body2.castShadow = true;
+    clk.add(body2);
+    const dial = new THREE.Mesh(new THREE.CircleGeometry(0.045, 18), face);
+    dial.position.set(0.05, 0.95, 0.135);
+    clk.add(dial);
+    // Hour + minute hand
+    for (const [len, ang, w] of [[0.025, 1.1, 0.005], [0.038, -0.4, 0.004]]) {
+      const hand = new THREE.Mesh(new THREE.BoxGeometry(w, len, 0.003), mat(0x2a1f1c));
+      hand.position.set(0.05 + Math.sin(ang) * len / 2, 0.95 + Math.cos(ang) * len / 2, 0.137);
+      hand.rotation.z = -ang;
+      clk.add(hand);
+    }
+    // Bells on top
+    for (const sx of [-0.045, 0.045]) {
+      const bell = new THREE.Mesh(new THREE.SphereGeometry(0.018, 10, 8), metal);
+      bell.position.set(0.05 + sx, 1.01, 0.10);
+      clk.add(bell);
+    }
+    // Little legs
+    for (const sx of [-0.04, 0.04]) {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.006, 0.006, 0.025, 6), metal);
+      leg.position.set(0.05 + sx, 0.88, 0.13);
+      leg.rotation.z = sx > 0 ? -0.4 : 0.4;
+      clk.add(leg);
+    }
+    dresser.add(clk);
+    tapWiggle(clk, 1318, 'Väckarklocka', { sway: 0.4, lift: 0.03, duration: 380 });
+  }
+
+  // Jewelry box — pink lid with heart latch
+  {
+    const jbox = new THREE.Group();
+    const boxMat = mat(0xf4c5cd, { roughness: 0.75 });
+    const trim = mat(0xcfa370, { roughness: 0.5 });
+    const base = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.06, 0.10), boxMat);
+    base.position.set(0.0, 0.88, 0.40);
+    base.castShadow = true;
+    jbox.add(base);
+    const lid = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.03, 0.10), boxMat);
+    lid.position.set(0.0, 0.925, 0.40);
+    jbox.add(lid);
+    // Heart on lid
+    const heart = new THREE.Mesh(new THREE.SphereGeometry(0.016, 10, 8), mat(0xe55f7a));
+    heart.scale.set(1.0, 0.35, 1.0);
+    heart.position.set(0.0, 0.945, 0.40);
+    jbox.add(heart);
+    // Trim band
+    const band = new THREE.Mesh(new THREE.BoxGeometry(0.145, 0.008, 0.103), trim);
+    band.position.set(0.0, 0.905, 0.40);
+    jbox.add(band);
+    dresser.add(jbox);
+    tapWiggle(jbox, 880, 'Smyckesskrin', { sway: 0.2, lift: 0.04 });
+  }
+
+  // Toy robot — silver block body with antenna
+  {
+    const robot = new THREE.Group();
+    const silver = mat(0xc7cdd3, { metalness: 0.5, roughness: 0.45 });
+    const accent = mat(0x4a90e2, { roughness: 0.6 });
+    const led = mat(0xe55f7a, { emissive: 0xe55f7a, emissiveIntensity: 0.7 });
+    const body3 = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.10, 0.06), silver);
+    body3.position.set(0.10, 0.95, -0.10);
+    body3.castShadow = true;
+    robot.add(body3);
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.05, 0.05), silver);
+    head.position.set(0.10, 1.025, -0.10);
+    robot.add(head);
+    // Two eyes
+    for (const sz of [-0.012, 0.012]) {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.006, 8, 6), led);
+      eye.position.set(0.10 - 0.026, 1.030, -0.10 + sz);
+      robot.add(eye);
+    }
+    // Antenna
+    const ant = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.04, 6), silver);
+    ant.position.set(0.10, 1.075, -0.10);
+    robot.add(ant);
+    const antBall = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), led);
+    antBall.position.set(0.10, 1.10, -0.10);
+    robot.add(antBall);
+    // Arms
+    for (const sz of [-0.040, 0.040]) {
+      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.06, 0.018), accent);
+      arm.position.set(0.10, 0.95, -0.10 + sz);
+      robot.add(arm);
+    }
+    dresser.add(robot);
+    tapWiggle(robot, 196, 'Robot', { sway: 0.15, lift: 0.06, duration: 480 });
+  }
+
+  // Music box — wooden cube with a hand crank, tiny ballerina on a peg
+  {
+    const mbox = new THREE.Group();
+    const wood = mat(PAL.wood, { roughness: 0.7 });
+    const dressM = mat(0xf4c5cd, { roughness: 0.85 });
+    const skinM = mat(0xf5e4cf);
+    const cube = new THREE.Mesh(new THREE.BoxGeometry(0.10, 0.08, 0.10), wood);
+    cube.position.set(0.0, 0.89, 0.10);
+    cube.castShadow = true;
+    mbox.add(cube);
+    // Trim along middle
+    const band = new THREE.Mesh(new THREE.BoxGeometry(0.105, 0.012, 0.105), mat(0xcfa370, { roughness: 0.5 }));
+    band.position.set(0.0, 0.89, 0.10);
+    mbox.add(band);
+    // Hand crank on side
+    const crank = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.04, 6), mat(0xcfa370));
+    crank.rotation.z = Math.PI / 2;
+    crank.position.set(0.07, 0.89, 0.10);
+    mbox.add(crank);
+    const crankBall = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), mat(0xcfa370));
+    crankBall.position.set(0.092, 0.89, 0.10);
+    mbox.add(crankBall);
+    // Ballerina figurine on top
+    const dressBall = new THREE.Mesh(new THREE.ConeGeometry(0.025, 0.05, 12), dressM);
+    dressBall.position.set(0.0, 0.96, 0.10);
+    mbox.add(dressBall);
+    const headBall = new THREE.Mesh(new THREE.SphereGeometry(0.014, 10, 8), skinM);
+    headBall.position.set(0.0, 1.00, 0.10);
+    mbox.add(headBall);
+    const bun = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), mat(0xc28d6a));
+    bun.position.set(0.0, 1.018, 0.094);
+    mbox.add(bun);
+    dresser.add(mbox);
+    tapWiggle(mbox, 1047, 'Speldosa', { sway: 0.3, lift: 0.03, duration: 600 });
   }
 
   placeObject(dresser, {
@@ -6697,6 +6965,135 @@ function buildPikachu() {
     }
   }
 
+  // ----- Toys on TOP of the pine shelf (y ≈ 1.80) -----
+  {
+    const topY = sh;  // 1.80
+
+    // Big rainbow stacker on the left side
+    {
+      const stack = new THREE.Group();
+      const cols = [0xe55f7a, 0xf2a93a, 0xf5d547, 0x6cc24a, 0x4a90e2, 0x8e6cd6];
+      // Base peg
+      const peg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.008, 0.008, 0.18, 8),
+        mat(0xcfa370, { roughness: 0.5 }),
+      );
+      peg.position.set(0, topY + 0.09, -sw / 2 + 0.20);
+      stack.add(peg);
+      // Disks of decreasing size
+      for (let i = 0; i < cols.length; i++) {
+        const r = 0.075 - i * 0.010;
+        const disk = new THREE.Mesh(
+          new THREE.CylinderGeometry(r, r, 0.022, 18),
+          mat(cols[i], { roughness: 0.65 }),
+        );
+        disk.position.set(0, topY + 0.022 + i * 0.024, -sw / 2 + 0.20);
+        disk.castShadow = true;
+        stack.add(disk);
+      }
+      shelf.add(stack);
+      tapWiggle(stack, 523, 'Regnbågsstapel', { sway: 0.10, lift: 0.04, duration: 520 });
+    }
+
+    // Toy kite leaning against the wall (back of shelf), rope drawn
+    {
+      const kite = new THREE.Group();
+      const kiteMat = mat(0x9ac4e9, { roughness: 0.55 });
+      const cross = mat(0xfffaf2, { roughness: 0.55 });
+      // Diamond made of two triangles
+      const diaShape = new THREE.Shape();
+      diaShape.moveTo(0, 0.12); diaShape.lineTo(0.08, 0); diaShape.lineTo(0, -0.12); diaShape.lineTo(-0.08, 0); diaShape.lineTo(0, 0.12);
+      const dia = new THREE.Mesh(new THREE.ShapeGeometry(diaShape), kiteMat);
+      dia.position.set(sd / 2 - 0.05, topY + 0.15, -0.10);
+      dia.rotation.y = -Math.PI / 2;
+      dia.rotation.x = -0.25;
+      kite.add(dia);
+      // White cross frame
+      const v = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.24, 0.005), cross);
+      v.position.copy(dia.position);
+      v.rotation.copy(dia.rotation);
+      kite.add(v);
+      const h = new THREE.Mesh(new THREE.BoxGeometry(0.003, 0.005, 0.16), cross);
+      h.position.copy(dia.position);
+      h.rotation.copy(dia.rotation);
+      kite.add(h);
+      // Three tassels at the bottom
+      for (let i = 0; i < 3; i++) {
+        const t = new THREE.Mesh(
+          new THREE.SphereGeometry(0.012, 8, 6),
+          mat([0xe55f7a, 0xf5d547, 0x6cc24a][i], { roughness: 0.8 }),
+        );
+        t.position.set(sd / 2 - 0.04, topY + 0.05 - i * 0.025, -0.10 - i * 0.005);
+        kite.add(t);
+      }
+      shelf.add(kite);
+      tapWiggle(kite, 1568, 'Drake', { sway: 0.4, lift: 0.06, duration: 600 });
+    }
+
+    // Cluster of helium balloons on a string
+    {
+      const ball = new THREE.Group();
+      const cols = [0xe55f7a, 0x4a90e2, 0xf5d547];
+      const baseZ = sw / 2 - 0.20;
+      const baseY = topY + 0.18;
+      for (let i = 0; i < cols.length; i++) {
+        const balloon = new THREE.Mesh(
+          new THREE.SphereGeometry(0.055, 14, 12),
+          mat(cols[i], { roughness: 0.45 }),
+        );
+        const a = (i - 1) * 0.6;
+        balloon.position.set(Math.cos(a) * 0.03, baseY + 0.05 + i * 0.015, baseZ + Math.sin(a) * 0.06);
+        balloon.scale.set(0.95, 1.1, 0.95);
+        balloon.castShadow = true;
+        ball.add(balloon);
+        // Knot
+        const knot = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 5), mat(cols[i]));
+        knot.position.set(balloon.position.x, balloon.position.y - 0.055, balloon.position.z);
+        ball.add(knot);
+        // String
+        const str = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.0015, 0.0015, 0.20, 4),
+          mat(0xfffaf2),
+        );
+        str.position.set(balloon.position.x * 0.4, baseY - 0.15, baseZ);
+        ball.add(str);
+      }
+      shelf.add(ball);
+      tapWiggle(ball, 988, 'Ballonger', { sway: 0.5, lift: 0.10, duration: 700 });
+    }
+
+    // Big plush bear sitting at the right end of the top
+    {
+      const bear = new THREE.Group();
+      const fur = mat(0xc28d6a, { roughness: 1.0 });
+      const muz = mat(0xf5e4cf, { roughness: 1.0 });
+      const eye = mat(0x2a1f1c);
+      const body4 = new THREE.Mesh(new THREE.SphereGeometry(0.10, 14, 10), fur);
+      body4.scale.set(1.0, 0.95, 1.0);
+      body4.position.set(0, topY + 0.10, sw / 2 - 0.20);
+      body4.castShadow = true;
+      bear.add(body4);
+      const head2 = new THREE.Mesh(new THREE.SphereGeometry(0.075, 14, 10), fur);
+      head2.position.set(0, topY + 0.235, sw / 2 - 0.20);
+      bear.add(head2);
+      for (const ez of [-0.055, 0.055]) {
+        const ear = new THREE.Mesh(new THREE.SphereGeometry(0.022, 8, 6), fur);
+        ear.position.set(-0.01, topY + 0.288, sw / 2 - 0.20 + ez);
+        bear.add(ear);
+      }
+      const sn = new THREE.Mesh(new THREE.SphereGeometry(0.028, 10, 8), muz);
+      sn.position.set(-0.06, topY + 0.225, sw / 2 - 0.20);
+      bear.add(sn);
+      for (const ez of [-0.025, 0.025]) {
+        const e = new THREE.Mesh(new THREE.SphereGeometry(0.008, 6, 6), eye);
+        e.position.set(-0.068, topY + 0.252, sw / 2 - 0.20 + ez);
+        bear.add(e);
+      }
+      shelf.add(bear);
+      tapWiggle(bear, 165, 'Stor nalle', { sway: 0.25, lift: 0.05, duration: 500 });
+    }
+  }
+
   // Frame body for AABB
   const shelfBody = new THREE.Mesh(
     new THREE.BoxGeometry(sd, sh, sw),
@@ -7070,6 +7467,248 @@ function buildPikachu() {
     interact: () => { SFX.honk(); },
     noFade: true,
   });
+}
+
+// ============================================================
+//  Floor toys hugging the walls (keeps room middle tidy)
+// ============================================================
+
+// Rocking horse — back wall, left of center
+{
+  const horse = new THREE.Group();
+  const woodTone = mat(0xc8956d, { roughness: 0.75 });
+  const maneMat = mat(0xe3a8b8, { roughness: 0.7 });
+  const saddleMat = mat(0xb05a6e, { roughness: 0.6 });
+
+  // Body (oval-ish)
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 10), woodTone);
+  body.scale.set(1.3, 0.85, 0.7);
+  body.position.y = 0.34;
+  horse.add(body);
+
+  // Head and neck
+  const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.18, 12), woodTone);
+  neck.position.set(0.18, 0.46, 0);
+  neck.rotation.z = -0.5;
+  horse.add(neck);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), woodTone);
+  head.scale.set(1.2, 0.9, 0.85);
+  head.position.set(0.26, 0.55, 0);
+  horse.add(head);
+
+  // Eye
+  const eye = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), mat(0x2a1a14));
+  eye.position.set(0.31, 0.57, 0.05);
+  horse.add(eye);
+
+  // Mane
+  for (let i = 0; i < 5; i++) {
+    const tuft = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), maneMat);
+    tuft.position.set(0.16 - i * 0.04, 0.55 - i * 0.01, 0);
+    horse.add(tuft);
+  }
+
+  // Tail
+  const tail = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), maneMat);
+  tail.scale.set(1.4, 1.4, 0.9);
+  tail.position.set(-0.22, 0.34, 0);
+  horse.add(tail);
+
+  // Saddle
+  const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.18), saddleMat);
+  saddle.position.set(0.02, 0.46, 0);
+  horse.add(saddle);
+
+  // Rockers (curved planks under)
+  for (const zOff of [-0.13, 0.13]) {
+    const rocker = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.018, 8, 18, Math.PI), woodTone);
+    rocker.rotation.x = Math.PI / 2;
+    rocker.rotation.y = Math.PI;
+    rocker.position.set(0, 0.06, zOff);
+    horse.add(rocker);
+  }
+
+  // Legs
+  for (const [lx, lz] of [[0.10, 0.11], [0.10, -0.11], [-0.10, 0.11], [-0.10, -0.11]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.020, 0.22, 10), woodTone);
+    leg.position.set(lx, 0.17, lz);
+    horse.add(leg);
+  }
+
+  // Rocking animation override
+  registerInteract(horse, () => {
+    tone(330, 0.10, 'triangle');
+    tone(440, 0.10, 'triangle', 0.08);
+    tone(330, 0.10, 'triangle', 0.16);
+    if (horse.userData._rocking) return;
+    horse.userData._rocking = true;
+    const start = performance.now();
+    const baseRot = horse.rotation.x;
+    (function step() {
+      const t = (performance.now() - start) / 1200;
+      if (t >= 1) { horse.rotation.x = baseRot; horse.userData._rocking = false; return; }
+      const decay = 1 - t;
+      horse.rotation.x = baseRot + Math.sin(t * Math.PI * 5) * 0.25 * decay;
+      requestAnimationFrame(step);
+    })();
+  }, { label: 'Gunghäst' });
+
+  placeObject(horse, { name: 'rockingHorse', x: -0.75, z: -ROOM.d / 2 + 0.28 });
+}
+
+// Basket of plush toys — back wall, right of center
+{
+  const basket = new THREE.Group();
+  const wickerMat = mat(0xc9a274, { roughness: 0.85 });
+
+  // Basket body (woven cylinder)
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.15, 0.20, 16, 1, true), wickerMat);
+  body.position.y = 0.10;
+  basket.add(body);
+  // Bottom
+  const bottom = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 0.01, 16), wickerMat);
+  bottom.position.y = 0.005;
+  basket.add(bottom);
+  // Rim
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.18, 0.012, 8, 24), wickerMat);
+  rim.rotation.x = Math.PI / 2;
+  rim.position.y = 0.20;
+  basket.add(rim);
+  // Horizontal weave bands
+  for (let i = 0; i < 3; i++) {
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.175 - i * 0.005, 0.006, 6, 20), mat(0xa07c4a, { roughness: 0.85 }));
+    band.rotation.x = Math.PI / 2;
+    band.position.y = 0.05 + i * 0.06;
+    basket.add(band);
+  }
+
+  // Plush peeking out — pink bunny
+  const bunny = new THREE.Group();
+  const bunnyMat = mat(0xf5c8d2, { roughness: 0.85 });
+  const bunnyHead = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), bunnyMat);
+  bunny.add(bunnyHead);
+  const ear1 = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.10, 6, 8), bunnyMat);
+  ear1.position.set(-0.025, 0.08, 0);
+  ear1.rotation.z = 0.2;
+  bunny.add(ear1);
+  const ear2 = new THREE.Mesh(new THREE.CapsuleGeometry(0.018, 0.10, 6, 8), bunnyMat);
+  ear2.position.set(0.025, 0.08, 0);
+  ear2.rotation.z = -0.2;
+  bunny.add(ear2);
+  for (const [ex, ez] of [[-0.025, 0.06], [0.025, 0.06]]) {
+    const eyeB = new THREE.Mesh(new THREE.SphereGeometry(0.008, 8, 6), mat(0x2a1a14));
+    eyeB.position.set(ex, 0.005, ez);
+    bunny.add(eyeB);
+  }
+  bunny.position.set(-0.05, 0.26, 0.04);
+  bunny.rotation.z = -0.15;
+  basket.add(bunny);
+
+  // Plush peeking — yellow duck
+  const duck = new THREE.Group();
+  const duckMat = mat(0xf4d97a, { roughness: 0.85 });
+  const duckHead = new THREE.Mesh(new THREE.SphereGeometry(0.055, 12, 10), duckMat);
+  duck.add(duckHead);
+  const beak = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.04, 8), mat(0xe89a4c));
+  beak.rotation.x = Math.PI / 2;
+  beak.position.set(0, -0.005, 0.05);
+  duck.add(beak);
+  for (const [ex, ez] of [[-0.018, 0.04], [0.018, 0.04]]) {
+    const eyeD = new THREE.Mesh(new THREE.SphereGeometry(0.007, 8, 6), mat(0x2a1a14));
+    eyeD.position.set(ex, 0.018, ez);
+    duck.add(eyeD);
+  }
+  duck.position.set(0.06, 0.25, -0.02);
+  duck.rotation.z = 0.18;
+  basket.add(duck);
+
+  // Plush peeking — small star
+  const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.045, 0), mat(0xf4b860, { roughness: 0.75, emissive: 0xa86a18, emissiveIntensity: 0.15 }));
+  star.position.set(0.02, 0.28, 0.10);
+  basket.add(star);
+
+  tapWiggle(basket, 660, 'Korg med gosedjur', { sway: 0.10, lift: 0.04, duration: 460 });
+  placeObject(basket, { name: 'plushBasket', x: 0.75, z: -ROOM.d / 2 + 0.28 });
+}
+
+// Doll stroller — back wall, center-right
+{
+  const stroller = new THREE.Group();
+  const frameMat = mat(0xe89aa8, { roughness: 0.55, metalness: 0.2 });
+  const fabricMat = mat(0xfde2eb, { roughness: 0.8 });
+  const wheelMat = mat(0x2a2a36, { roughness: 0.7 });
+
+  // Bucket (the cradle)
+  const bucket = new THREE.Mesh(new THREE.BoxGeometry(0.22, 0.14, 0.32), fabricMat);
+  bucket.position.y = 0.32;
+  stroller.add(bucket);
+  // Bucket trim
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(0.235, 0.02, 0.335), frameMat);
+  trim.position.y = 0.40;
+  stroller.add(trim);
+
+  // Canopy (half-dome)
+  const canopy = new THREE.Mesh(new THREE.SphereGeometry(0.16, 14, 10, 0, Math.PI * 2, 0, Math.PI / 2), fabricMat);
+  canopy.scale.set(1.0, 0.7, 1.0);
+  canopy.position.set(0, 0.41, -0.06);
+  stroller.add(canopy);
+
+  // Handle bar
+  const handle = new THREE.Mesh(new THREE.TorusGeometry(0.07, 0.013, 8, 16, Math.PI), frameMat);
+  handle.rotation.x = Math.PI / 2;
+  handle.rotation.z = Math.PI;
+  handle.position.set(0, 0.50, 0.20);
+  stroller.add(handle);
+  const handlePost1 = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18, 8), frameMat);
+  handlePost1.position.set(-0.07, 0.41, 0.17);
+  stroller.add(handlePost1);
+  const handlePost2 = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.18, 8), frameMat);
+  handlePost2.position.set(0.07, 0.41, 0.17);
+  stroller.add(handlePost2);
+
+  // Frame legs
+  for (const [lx, lz] of [[-0.10, -0.14], [0.10, -0.14], [-0.10, 0.14], [0.10, 0.14]]) {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.010, 0.010, 0.28, 8), frameMat);
+    leg.position.set(lx, 0.14, lz);
+    stroller.add(leg);
+  }
+
+  // Wheels
+  for (const [wx, wz] of [[-0.10, -0.14], [0.10, -0.14], [-0.10, 0.14], [0.10, 0.14]]) {
+    const wheel = new THREE.Mesh(new THREE.TorusGeometry(0.045, 0.018, 8, 14), wheelMat);
+    wheel.rotation.y = Math.PI / 2;
+    wheel.position.set(wx, 0.045, wz);
+    stroller.add(wheel);
+  }
+
+  // Tiny doll head peeking out
+  const dollHead = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), mat(0xf3d3b5, { roughness: 0.7 }));
+  dollHead.position.set(0, 0.42, 0.10);
+  stroller.add(dollHead);
+  const dollHair = new THREE.Mesh(new THREE.SphereGeometry(0.046, 12, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat(0x8a5a3a, { roughness: 0.85 }));
+  dollHair.position.set(0, 0.435, 0.10);
+  stroller.add(dollHair);
+
+  tapWiggle(stroller, 523, 'Dockvagn', { sway: 0.12, lift: 0.05, duration: 480 });
+  placeObject(stroller, { name: 'dollStroller', x: 0.08, z: -ROOM.d / 2 + 0.28, yaw: 0.3 });
+}
+
+// Hula hoop leaning against left wall (in the gap between bunk and dresser)
+{
+  const hoopGrp = new THREE.Group();
+  const hoop = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.018, 10, 32), mat(0xe07ab8, { roughness: 0.45, emissive: 0x6a2854, emissiveIntensity: 0.15 }));
+  hoop.position.y = 0.22;
+  hoopGrp.add(hoop);
+  // Striped color rings
+  for (let i = 0; i < 4; i++) {
+    const seg = new THREE.Mesh(new THREE.TorusGeometry(0.221, 0.020, 6, 8, Math.PI / 4), mat([0xf3d96b, 0x7ad1a5, 0x6ec0ff, 0xffffff][i], { roughness: 0.55 }));
+    seg.rotation.z = (i * Math.PI) / 2;
+    seg.position.y = 0.22;
+    hoopGrp.add(seg);
+  }
+  hoopGrp.rotation.z = 0.25;  // lean against wall
+  tapWiggle(hoopGrp, 880, 'Tunnband', { sway: 0.25, lift: 0.02, duration: 500 });
+  placeObject(hoopGrp, { name: 'hulaHoop', x: -ROOM.w / 2 + 0.10, z: -0.55 });
 }
 
 // ============================================================
