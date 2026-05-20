@@ -8297,10 +8297,10 @@ const ROOM_CENTER = new THREE.Vector3(0, 0.5, 0);
 // Each station has a camera world-position and a look-at target.
 const STATIONS = [
   { name: 'Översikt', pos: [ 0.0, 4.8,  3.3], target: [ 0.0, 0.3, -0.3] },
-  { name: 'Säng',     pos: [ 1.4, 1.3,  1.0], target: [-1.6, 0.8,  0.4] },
+  { name: 'Säng',     pos: [ 1.7, 1.5,  1.5], target: [-1.3, 0.6, -0.1] },
   { name: 'Bakvägg',  pos: [ 0.0, 1.4,  1.3], target: [ 0.0, 0.7, -1.8] },
-  { name: 'Hylla',    pos: [-0.4, 1.5,  0.6], target: [ 1.9, 1.0, -0.5] },
-  { name: 'Dörr',     pos: [-0.4, 1.4, -1.0], target: [ 0.8, 1.0,  1.9] },
+  { name: 'Hylla',    pos: [-0.6, 1.4,  0.5], target: [ 1.7, 0.7, -0.9] },
+  { name: 'Dörr',     pos: [-0.6, 1.4, -0.6], target: [ 1.5, 0.9,  1.7] },
 ];
 let currentStation = 0;
 
