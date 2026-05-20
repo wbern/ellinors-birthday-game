@@ -7480,60 +7480,89 @@ function buildPikachu() {
   const maneMat = mat(0xe3a8b8, { roughness: 0.7 });
   const saddleMat = mat(0xb05a6e, { roughness: 0.6 });
 
-  // Body (oval-ish)
+  // Rockers — half-arcs viewed from the side (XY plane), one on each side of
+  // the horse. Default TorusGeometry(arc=π) makes a "rainbow" arch; rotating
+  // by π around Z flips it into a smile (concave-up) that sits on the floor.
+  const ROCKER_R = 0.24;
+  for (const zOff of [-0.11, 0.11]) {
+    const rocker = new THREE.Mesh(
+      new THREE.TorusGeometry(ROCKER_R, 0.022, 8, 28, Math.PI),
+      woodTone,
+    );
+    rocker.rotation.z = Math.PI;
+    rocker.position.set(0, ROCKER_R, zOff);
+    horse.add(rocker);
+  }
+
+  // Cross beam between rocker endpoints — acts as the platform the horse stands on.
+  for (const xOff of [-ROCKER_R + 0.02, ROCKER_R - 0.02]) {
+    const beam = new THREE.Mesh(
+      new THREE.BoxGeometry(0.04, 0.04, 0.24),
+      woodTone,
+    );
+    beam.position.set(xOff, ROCKER_R, 0);
+    horse.add(beam);
+  }
+
+  // Body (oval-ish), resting just above the rocker endpoints
+  const BODY_Y = ROCKER_R + 0.20;
   const body = new THREE.Mesh(new THREE.SphereGeometry(0.18, 14, 10), woodTone);
   body.scale.set(1.3, 0.85, 0.7);
-  body.position.y = 0.34;
+  body.position.y = BODY_Y;
   horse.add(body);
+
+  // Short stub legs that bridge the body to the rocker endpoints (one near each end).
+  for (const xOff of [-0.16, 0.16]) {
+    for (const zOff of [-0.10, 0.10]) {
+      const leg = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.022, 0.024, 0.18, 10),
+        woodTone,
+      );
+      leg.position.set(xOff, ROCKER_R + 0.09, zOff);
+      horse.add(leg);
+    }
+  }
 
   // Head and neck
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 0.18, 12), woodTone);
-  neck.position.set(0.18, 0.46, 0);
+  neck.position.set(0.18, BODY_Y + 0.12, 0);
   neck.rotation.z = -0.5;
   horse.add(neck);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), woodTone);
   head.scale.set(1.2, 0.9, 0.85);
-  head.position.set(0.26, 0.55, 0);
+  head.position.set(0.26, BODY_Y + 0.21, 0);
   horse.add(head);
 
   // Eye
   const eye = new THREE.Mesh(new THREE.SphereGeometry(0.012, 8, 6), mat(0x2a1a14));
-  eye.position.set(0.31, 0.57, 0.05);
+  eye.position.set(0.31, BODY_Y + 0.23, 0.05);
   horse.add(eye);
+
+  // Ears
+  for (const zOff of [-0.04, 0.04]) {
+    const ear = new THREE.Mesh(new THREE.ConeGeometry(0.022, 0.05, 8), woodTone);
+    ear.position.set(0.25, BODY_Y + 0.29, zOff);
+    ear.rotation.z = 0.3;
+    horse.add(ear);
+  }
 
   // Mane
   for (let i = 0; i < 5; i++) {
     const tuft = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 6), maneMat);
-    tuft.position.set(0.16 - i * 0.04, 0.55 - i * 0.01, 0);
+    tuft.position.set(0.16 - i * 0.04, BODY_Y + 0.21 - i * 0.01, 0);
     horse.add(tuft);
   }
 
   // Tail
   const tail = new THREE.Mesh(new THREE.SphereGeometry(0.04, 10, 8), maneMat);
   tail.scale.set(1.4, 1.4, 0.9);
-  tail.position.set(-0.22, 0.34, 0);
+  tail.position.set(-0.22, BODY_Y, 0);
   horse.add(tail);
 
   // Saddle
   const saddle = new THREE.Mesh(new THREE.BoxGeometry(0.13, 0.04, 0.18), saddleMat);
-  saddle.position.set(0.02, 0.46, 0);
+  saddle.position.set(0.02, BODY_Y + 0.12, 0);
   horse.add(saddle);
-
-  // Rockers (curved planks under)
-  for (const zOff of [-0.13, 0.13]) {
-    const rocker = new THREE.Mesh(new THREE.TorusGeometry(0.22, 0.018, 8, 18, Math.PI), woodTone);
-    rocker.rotation.x = Math.PI / 2;
-    rocker.rotation.y = Math.PI;
-    rocker.position.set(0, 0.06, zOff);
-    horse.add(rocker);
-  }
-
-  // Legs
-  for (const [lx, lz] of [[0.10, 0.11], [0.10, -0.11], [-0.10, 0.11], [-0.10, -0.11]]) {
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.020, 0.22, 10), woodTone);
-    leg.position.set(lx, 0.17, lz);
-    horse.add(leg);
-  }
 
   // Rocking animation override
   registerInteract(horse, () => {
@@ -8267,7 +8296,7 @@ const ROOM_CENTER = new THREE.Vector3(0, 0.5, 0);
 // Fixed camera "stations" (Myst-style). Press LEFT/RIGHT to cycle.
 // Each station has a camera world-position and a look-at target.
 const STATIONS = [
-  { name: 'Översikt', pos: [ 3.6, 3.3,  3.6], target: [ 0.0, 0.5, -0.1] },
+  { name: 'Översikt', pos: [ 0.0, 4.8,  3.3], target: [ 0.0, 0.3, -0.3] },
   { name: 'Säng',     pos: [ 1.4, 1.3,  1.0], target: [-1.6, 0.8,  0.4] },
   { name: 'Bakvägg',  pos: [ 0.0, 1.4,  1.3], target: [ 0.0, 0.7, -1.8] },
   { name: 'Hylla',    pos: [-0.4, 1.5,  0.6], target: [ 1.9, 1.0, -0.5] },
@@ -9476,17 +9505,6 @@ function animate() {
     parts.rightEye.scale.y = 1;
   }
 
-  // ---------------- Camera: look at goose, sit on the diagonal opposite ----------------
-  // Only chase the goose while she's actively moving AND the user isn't
-  // dragging the view. When the goose stands still — or the user pans the
-  // camera — the target sits where it is, so the camera doesn't keep
-  // creeping after the user lets go.
-  if (goose.moving && !drag.active) {
-    const followLerp = 1 - Math.pow(0.001, dt);
-    cam.target.x += (goose.x - cam.target.x) * followLerp;
-    cam.target.z += (goose.z - cam.target.z) * followLerp;
-  }
-  cam.target.y = 0.5;
   // Fixed-station camera: smooth lerp between stations when nav happens.
   tickStationAnim(dt);
   updateCameraFromCam();
